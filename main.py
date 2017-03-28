@@ -6,6 +6,8 @@ from utils import *
 
 os.environ["PORT"] = "80"
 
+sensorId = '2225280'
+
 path = 'data/sensors.db'
 db = dataset.connect('sqlite:///' + path, engine_kwargs={'connect_args': {'check_same_thread':False}})
 
@@ -23,12 +25,10 @@ class Main:
     
     def GET(self):
         
-        sensorId = '2225280'
-        
         vals = []
         timestamps = []
             
-        if db.tables.count(sensorId):  # checking if the database contains data for a given sensor
+        if db.tables.count(sensorId):  # checking if the database contains data for the specified sensor
         
             for el in db[sensorId].all():
                 vals.append(float(el['data']))
@@ -43,8 +43,6 @@ class Receiver:
 
     def GET(self, received):
         # example usage: http://127.0.0.1/insert/sensorId=2225280&decimal=2.0&timestamp=1490710679
-        
-        sensorId = '2225280'        # this receiver is configured to work with data from sensor 2225280
 
         if received:
             
@@ -68,8 +66,6 @@ class Last_val:
     
     def GET(self):
         # example usage: http://127.0.0.1/last
-        
-        sensorId = '2225280'        # working with sensor 2225280
         
         if db.tables.count(sensorId):  # checking if the database contains data for a given sensor
             
