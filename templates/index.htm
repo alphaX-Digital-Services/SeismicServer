@@ -1,0 +1,54 @@
+$def with (graph)
+
+<!DOCTYPE html>
+<html>
+
+<head>
+<style>
+:root { 
+    background: white;
+}
+
+#graph {
+    position: relative;	 
+	padding: 75px 0;
+	float: left;
+}
+
+#nav {
+    position: relative; 
+	padding: 150px 0;	
+	line-height: 75px;
+	float: right;
+}
+
+#button {
+	height: 50px;
+	width: 400px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="graph">
+    $:graph
+</div>
+
+<div id="nav">
+<br/>
+
+<input type="button" id="button" value="Predict 1-minute-ahead value"/>
+<br/>
+
+<input type="button" id="button" value="Predict n-minutes-ahead value"/>
+<br/>
+<br/>
+
+</div>
+
+
+</body>
+
+</html>
