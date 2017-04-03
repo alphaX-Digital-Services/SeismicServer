@@ -69,8 +69,8 @@ class Last_val:
         
         if db.tables.count(sensorId):  # checking if the database contains data for a given sensor
             
-            decimal = db[sensorId].find_one(id=db[sensorId].count())['data']
-            timestamp = db[sensorId].find_one(id=db[sensorId].count())['time']
+            decimal = str(db[sensorId].find_one(id=db[sensorId].count())['data'])
+            timestamp = to_timestamp(db[sensorId].find_one(id=db[sensorId].count())['time'])
             
             output_dict = {"type": sensorId, "data": decimal, "time": timestamp}
         

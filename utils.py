@@ -12,7 +12,7 @@ def to_timestamp(local_time):
     time_tuple = time.strptime(local_time, "%Y-%m-%d %H:%M:%S")
     timestamp = time.mktime(time_tuple)
     
-    return timestamp
+    return str(int(timestamp))
     
 
 def getvals(data):
@@ -31,6 +31,6 @@ def getvals(data):
     
     t_start = data.find('timestamp=')+10
     
-    timestamp = int(data[t_start:])
+    timestamp = str(data[t_start:])
 
     return sensorId, decimal, timestamp
