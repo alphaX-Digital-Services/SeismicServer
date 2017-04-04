@@ -6,7 +6,7 @@ from utils import *
 
 os.environ["PORT"] = "80"
 
-sensorId = '2225280'
+sensorId = '55941031'
 
 path = 'data/sensors.db'
 db = dataset.connect('sqlite:///' + path, engine_kwargs={'connect_args': {'check_same_thread':False}})
