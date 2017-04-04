@@ -31,6 +31,6 @@ def getvals(data):
     
     t_start = data.find('timestamp=')+10
     
-    timestamp = str(data[t_start:])
+    timestamp = str(int(int(data[t_start:])/1000))            # converting milliseconds' timestamps to seconds' timestamps
 
     return sensorId, decimal, timestamp

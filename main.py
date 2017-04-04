@@ -59,7 +59,7 @@ class Receiver:
             return "OK / Received: %s" % output_dict
         
         else:
-            return "Incorrect format. Please check the format of your POST-request"
+            return "Incorrect format. Please check the format of your GET-request"
         
             
 class Last_val:
