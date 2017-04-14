@@ -3,6 +3,8 @@ import web
 import dataset
 import visuals
 from utils import *
+import numpy as np
+import pyflux as pf
 
 os.environ["PORT"] = "80"
 
@@ -17,7 +19,9 @@ render = web.template.render('templates')
 urls = (
     '/', 'Main',
     '/insert/(.*)', 'Receiver',
-    '/last', 'Last_val'
+    '/last', 'Last_val',
+    '/predict_next', 'Predict_next',
+    '/predict_next_5', 'Predict_next_5'
 )
 
 
@@ -37,8 +41,19 @@ class Main:
         graph = visuals.plot_data(timestamps, vals, sensorId)
             
         return render.index(graph)
-
-
+        
+    def POST(self):
+        
+        data = web.input(predict_next=[], predict_next_5=[])
+            
+        if data.predict_next:
+            raise web.seeother('/predict_next')
+            
+        elif data.predict_next_5:
+            raise web.seeother('/predict_next_5')
+            
+            
+            
 class Receiver:        
 
     def GET(self, received):
@@ -78,6 +93,89 @@ class Last_val:
         
         else:
             return "No data received yet"
+        
+        
+class Predict_next:
+    
+    def GET(self):
+        # example usage: http://127.0.0.1/predict_next
+        
+        vals = []
+        time_full = []
+            
+        if db.tables.count(sensorId):  
+        
+            for el in db[sensorId].all():
+                vals.append(float(el['data']))
+                time_full.append(el['time'])
+        
+        time_min = mean_minute_transform(vals, time_full)
+                
+        x = np.asarray([to_local_time(ts, precision = "minutes") for ts in time_min.keys()])
+        y = np.asarray(time_min.values())
+        
+        # working on a timeframe of 1000 minutes
+        x = x[len(x)-1000:len(x)]
+        y = y[len(y)-1000:len(y)]
+        
+        # using ARIMA model
+        model_arima = pf.ARIMA(data=np.asarray(y), ar=3, ma=1, target=np.asarray(x))
+        
+        # training via maximum likelihood estimation
+        trained_arima = model_arima.fit("MLE")
+        
+        predicted = model_arima.predict(h=1)['Series'].tolist()[0]
+        
+        if predicted > y[-1]:
+            return "Prediction: the value will increase. <br/><br/>Predicted value for the next minute: %f <br/>Current value at %s: %f" % (predicted, x[-1], y[-1])
+        
+        else:
+            return "Prediction: the value will decrease. <br/><br/>Predicted value for the next minute: %f <br/>Current value at %s: %f" % (predicted, x[-1], y[-1])
+        
+
+class Predict_next_5:
+    
+    def GET(self):
+        # example usage: http://127.0.0.1/predict_next_5
+        
+        vals = []
+        time_full = []
+            
+        if db.tables.count(sensorId):  
+        
+            for el in db[sensorId].all():
+                vals.append(float(el['data']))
+                time_full.append(el['time'])
+        
+        time_min = mean_minute_transform(vals, time_full)
+                
+        x = np.asarray([to_local_time(ts, precision = "minutes") for ts in time_min.keys()])
+        y = np.asarray(time_min.values())
+        
+        # working on a timeframe of 1000 minutes
+        x = x[len(x)-1000:len(x)]
+        y = y[len(y)-1000:len(y)]
+        
+        # using ARIMA model
+        model_arima = pf.ARIMA(data=np.asarray(y), ar=3, ma=1, target=np.asarray(x))
+        
+        # training via maximum likelihood estimation
+        trained_arima = model_arima.fit("MLE")
+        
+        predicted = model_arima.predict(h=5, intervals = True)['Series'].tolist()
+        
+        x_ticks = range(1,6)
+        
+        graph = visuals.plot_data(x_ticks, predicted, sensorId)
+        
+        return render.visualize(graph)
+        
+    def POST(self):
+        
+        data = web.input(back=[])
+            
+        if data.back:
+            raise web.seeother('/')
         
         
 
