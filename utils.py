@@ -124,6 +124,7 @@ def mean_minute_transform(vals, time_full):
                 
                 prev_tick = tick
                 
+                # ToDo: rewrite
                 if ts == last_received_tick:
                     sum_last_tick = time_min[tick]
                     time_min.update({tick: (sum_last_tick / counter)})
@@ -152,5 +153,3 @@ def mean_minute_transform(vals, time_full):
             prev_tick = tick
             
     return time_min
-
-

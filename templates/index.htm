@@ -11,21 +11,34 @@ $def with (graph)
 
 #graph {
     position: relative;	 
-	padding: 75px 0;
-	width: 70%;
-	float: left;
+	height: 80%;
+	float: top;
 }
 
 #nav {
     position: relative; 
-	padding: 150px 0;	
 	line-height: 75px;
-	float: right;
+	height: 20%;
+	top: bottom;
 }
 
 #button {
 	height: 50px;
 	width: 400px;
+}
+
+#nav2 {
+    position: relative; 
+	float: bottom;
+}
+
+#resetbutton {
+	height: 50px;
+	width: 300px;
+}
+#restorebutton {
+	height: 50px;
+	width: 300px;
 }
 
 </style>
@@ -51,6 +64,14 @@ $def with (graph)
 
 </form>
 
+</div>
+
+<div id="nav2">
+<form method="POST" enctype="multipart/form-data" action="">
+<input type="submit" id = "resetbutton" name="reset" value="Reset the graph"/>
+<input type="submit" id = "restorebutton" name="restore" value="Restore the full graph"/>
+<br/>
+</form>
 </div>
 
 

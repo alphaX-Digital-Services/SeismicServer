@@ -10,6 +10,7 @@ os.environ["PORT"] = "80"
 
 sensorId = '55941031'
 
+
 path = 'data/sensors.db'
 db = dataset.connect('sqlite:///' + path, engine_kwargs={'connect_args': {'check_same_thread':False}})
 
@@ -21,7 +22,8 @@ urls = (
     '/insert/(.*)', 'Receiver',
     '/last', 'Last_val',
     '/predict_next', 'Predict_next',
-    '/predict_next_5', 'Predict_next_5'
+    '/predict_next_5', 'Predict_next_5',
+    '/reset', 'Reset'
 )
 
 
@@ -37,20 +39,56 @@ class Main:
             for el in db[sensorId].all():
                 vals.append(float(el['data']))
                 timestamps.append(el['time'])
+                
+        if len(vals) > 50000:
+            for i in range(0, len(timestamps)-50000, 500):
+                db[sensorId].delete(time=timestamps[i:i+500])
+        
+        db.query("vacuum")
+        
+        if len(vals) > 35000:
+            timestamps = timestamps[len(timestamps)-35000:len(timestamps)]
+            vals = vals[len(vals)-35000:len(vals)]
+        
+        
+        if db.tables.count("reset_indices"):  
+            reset_idx = []
             
+            for el in db["reset_indices"].all():
+                reset_idx.append(el['time'])
+            print(reset_idx)
+            timestamps = timestamps[reset_idx[-1]:]
+            vals = vals[reset_idx[-1]:]
+        
         graph = visuals.plot_data(timestamps, vals, sensorId)
             
         return render.index(graph)
         
     def POST(self):
         
-        data = web.input(predict_next=[], predict_next_5=[])
+        data = web.input(predict_next=[], predict_next_5=[], reset=[], restore=[])
             
         if data.predict_next:
             raise web.seeother('/predict_next')
             
         elif data.predict_next_5:
             raise web.seeother('/predict_next_5')
+            
+        elif data.reset:
+            timestamps = []
+                
+            if db.tables.count(sensorId):  
+            
+                for el in db[sensorId].all():
+                    timestamps.append(el['time'])
+            
+            reset_indices = db["reset_indices"]
+            reset_indices.insert(dict(time = timestamps.index(timestamps[-1])))
+            raise web.seeother('/')
+            
+        elif data.restore:
+            db["reset_indices"].drop()
+            raise web.seeother('/')
             
             
             
@@ -70,8 +108,11 @@ class Receiver:
                 table.insert(dict(data = decimal, time = to_local_time(timestamp)))
                 
                 output_dict = {"type": sensorId, "data": decimal, "time": timestamp}
-        
-            return "OK / Received: %s" % output_dict
+                
+                return "OK / Received: %s" % output_dict
+                
+            else:
+                return "Wrong sensor ID value. </br>Sensor ID should be: %s </br>Value entered: %s" % (sensorId, sId)
         
         else:
             return "Incorrect format. Please check the format of your GET-request"
@@ -127,10 +168,10 @@ class Predict_next:
         predicted = model_arima.predict(h=1)['Series'].tolist()[0]
         
         if predicted > y[-1]:
-            return "Prediction: the value will increase. <br/><br/>Predicted value for the next minute: %f <br/>Current value at %s: %f" % (predicted, x[-1], y[-1])
+            return "Prediction: the value will increase. <br/><br/>Predicted value for the next minute: %f <br/>Current value at %s: %f <br/><br/>Last observation (raw) at %s: %f" % (predicted, x[-1], y[-1], time_full[-1], vals[-1])
         
         else:
-            return "Prediction: the value will decrease. <br/><br/>Predicted value for the next minute: %f <br/>Current value at %s: %f" % (predicted, x[-1], y[-1])
+            return "Prediction: the value will decrease. <br/><br/>Predicted value for the next minute: %f <br/>Current value at %s: %f <br/><br/>Last observation (raw) at %s: %f" % (predicted, x[-1], y[-1], time_full[-1], vals[-1])
         
 
 class Predict_next_5:

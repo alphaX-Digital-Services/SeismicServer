@@ -4,6 +4,7 @@ import numpy as np
 import pyflux as pf
 import pandas as pd
 import matplotlib.pyplot as plt
+import time as time
 
 sensorId = '55941031'
 
@@ -12,14 +13,33 @@ db = dataset.connect('sqlite:///' + path, engine_kwargs={'connect_args': {'check
 
 vals = []
 time_full = []
+
+
+t0 = time.time()
+
     
 if db.tables.count(sensorId):  
 
     for el in db[sensorId].all():
         vals.append(float(el['data']))
         time_full.append(el['time'])
+    
+t1 = time.time()
+
+print("Time for DB read: ", t1-t0)
+
+t0 = time.time()
         
-        
+if len(vals) > 50000:
+    for i in range(0, len(time_full)-50000, 500):
+        db[sensorId].delete(time=time_full[i:i+500])
+
+db.query("vacuum")
+
+t1 = time.time()
+
+print("Time for DB truncating: ", t1-t0)
+
 time_min = mean_minute_transform(vals, time_full)
         
 x = np.asarray([to_local_time(ts, precision = "minutes") for ts in time_min.keys()])
