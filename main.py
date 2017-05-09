@@ -112,7 +112,7 @@ class Receiver:
                 return "OK / Received: %s" % output_dict
                 
             else:
-                return "Wrong sensor ID value. </br>Sensor ID should be: %s </br>Value entered: %s" % (sensorId, sId)
+                return "<html>Wrong sensor ID value. </br>Sensor ID should be: %s </br>Value entered: %s</html>" % (sensorId, sId)
         
         else:
             return "Incorrect format. Please check the format of your GET-request"
@@ -168,10 +168,10 @@ class Predict_next:
         predicted = model_arima.predict(h=1)['Series'].tolist()[0]
         
         if predicted > y[-1]:
-            return "Prediction: the value will increase. <br/><br/>Predicted value for the next minute: %f <br/>Current value at %s: %f <br/><br/>Last observation (raw) at %s: %f" % (predicted, x[-1], y[-1], time_full[-1], vals[-1])
+            return "<html>Prediction: the value will increase. <br/><br/>Predicted value for the next minute: %f <br/>Current value at %s: %f <br/><br/>Last observation (raw) at %s: %f</html>" % (predicted, x[-1], y[-1], time_full[-1], vals[-1])
         
         else:
-            return "Prediction: the value will decrease. <br/><br/>Predicted value for the next minute: %f <br/>Current value at %s: %f <br/><br/>Last observation (raw) at %s: %f" % (predicted, x[-1], y[-1], time_full[-1], vals[-1])
+            return "<html>Prediction: the value will decrease. <br/><br/>Predicted value for the next minute: %f <br/>Current value at %s: %f <br/><br/>Last observation (raw) at %s: %f</html>" % (predicted, x[-1], y[-1], time_full[-1], vals[-1])
         
 
 class Predict_next_5:
