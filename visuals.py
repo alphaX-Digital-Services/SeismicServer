@@ -7,7 +7,7 @@ def plot_data(timestamps, data, sensorId):
     scattered = [go.Scatter(x=timestamps, y=data)]
     
     layout = dict(
-        title = "Sensor ID: %s" % sensorId, height = 750, width = 1400
+        title = "Sensor ID: %s" % sensorId, height = 800, width = 1480
     )
     
     fig = dict(data=scattered, layout=layout)

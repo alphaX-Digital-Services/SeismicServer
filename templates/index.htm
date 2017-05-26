@@ -10,36 +10,30 @@ $def with (graph)
 }
 
 #graph {
-    position: relative;	 
-	height: 80%;
+    position: relative;
 	float: top;
 }
 
 #nav {
-    position: relative; 
-	line-height: 75px;
-	height: 20%;
-	top: bottom;
-}
-
-#button {
-	height: 50px;
-	width: 400px;
-}
-
-#nav2 {
-    position: relative; 
+    position: relative;
+	padding: 0px 8px;
 	float: bottom;
 }
 
-#resetbutton {
+#predict_button {
 	height: 50px;
-	width: 300px;
+	width: 355px;
+	margin: 3px;
+	color: #b13051;
 }
-#restorebutton {
+
+#graph_button {
 	height: 50px;
-	width: 300px;
+	width: 355px;
+	margin: 3px;
+	color: green;
 }
+
 
 </style>
 </head>
@@ -55,23 +49,14 @@ $def with (graph)
 
 <form method="POST" enctype="multipart/form-data" action="">
 
-<input type="submit" id = "button" name="predict_next" value="Predict next value"/>
-<br/>
+<input type="submit" id = "predict_button" name="predict_next" value="Predict next value"/>
+<input type="submit" id = "predict_button" name="predict_next_5" value="Predict next 5 values"/>
 
-<input type="submit" id = "button" name="predict_next_5" value="Predict next 5 values"/>
-<br/>
-<br/>
+<input type="submit" id = "graph_button" name="reset" value="Reset the graph"/>
+<input type="submit" id = "graph_button" name="restore" value="Restore the full graph"/>
 
 </form>
 
-</div>
-
-<div id="nav2">
-<form method="POST" enctype="multipart/form-data" action="">
-<input type="submit" id = "resetbutton" name="reset" value="Reset the graph"/>
-<input type="submit" id = "restorebutton" name="restore" value="Restore the full graph"/>
-<br/>
-</form>
 </div>
 
 

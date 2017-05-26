@@ -1,18 +1,19 @@
 import os
 import web
-import dataset
 import visuals
 from utils import *
 import numpy as np
+import pandas as pd
 import pyflux as pf
 
 os.environ["PORT"] = "80"
 
-sensorId = '55941031'
+sensors = ['55941031']
+current_sensor = '55941031'
 
+dbpath = 'data/sensor_'
 
-path = 'data/sensors.db'
-db = dataset.connect('sqlite:///' + path, engine_kwargs={'connect_args': {'check_same_thread':False}})
+current_sensor_dbpath = dbpath+current_sensor+".csv"    
 
 
 render = web.template.render('templates')
@@ -31,36 +32,31 @@ class Main:
     
     def GET(self):
         
-        vals = []
-        timestamps = []
+        data = []
+        time = []
+        
+        if os.path.isfile(current_sensor_dbpath):  
+        
+            df = pd.read_csv(current_sensor_dbpath)
             
-        if db.tables.count(sensorId):  # checking if the database contains data for the specified sensor
-        
-            for el in db[sensorId].all():
-                vals.append(float(el['data']))
-                timestamps.append(el['time'])
-                
-        if len(vals) > 50000:
-            for i in range(0, len(timestamps)-50000, 500):
-                db[sensorId].delete(time=timestamps[i:i+500])
-        
-        db.query("vacuum")
-        
-        if len(vals) > 35000:
-            timestamps = timestamps[len(timestamps)-35000:len(timestamps)]
-            vals = vals[len(vals)-35000:len(vals)]
-        
-        
-        if db.tables.count("reset_indices"):  
-            reset_idx = []
+            data = df['data'].values
+            time = df['time'].values
             
-            for el in db["reset_indices"].all():
-                reset_idx.append(el['time'])
-            print(reset_idx)
-            timestamps = timestamps[reset_idx[-1]:]
-            vals = vals[reset_idx[-1]:]
         
-        graph = visuals.plot_data(timestamps, vals, sensorId)
+        if len(data) > 35000:
+            data = data[len(data)-35000:len(data)]
+            time = time[len(time)-35000:len(time)]
+        
+        
+        if os.path.isfile("data/reset_timevals.csv"):  
+            reset_timevals = pd.read_csv("data/reset_timevals.csv")
+
+            reset_idx = np.where(time == reset_timevals['time'].values[-1])[0][0]
+            
+            time = time[reset_idx:]
+            data = data[reset_idx:]
+        
+        graph = visuals.plot_data(time, data, current_sensor)
             
         return render.index(graph)
         
@@ -75,19 +71,29 @@ class Main:
             raise web.seeother('/predict_next_5')
             
         elif data.reset:
-            timestamps = []
                 
-            if db.tables.count(sensorId):  
+            if os.path.isfile(current_sensor_dbpath): 
             
-                for el in db[sensorId].all():
-                    timestamps.append(el['time'])
+                df = pd.read_csv(current_sensor_dbpath)
+                
+                time = df['time'].values
+                
+            data = [[current_sensor, time[-1]]]
             
-            reset_indices = db["reset_indices"]
-            reset_indices.insert(dict(time = timestamps.index(timestamps[-1])))
+            df = pd.DataFrame(data, index = None, columns = ('sensorId', 'time'))
+            
+            if os.path.isfile("data/reset_timevals.csv"):
+                with open("data/reset_timevals.csv", 'a') as f:
+                    df.to_csv(f, index = None, header = False)
+            
+            else:
+                with open("data/reset_timevals.csv", 'w') as f:
+                    df.to_csv(f, index = None)
+                
             raise web.seeother('/')
             
         elif data.restore:
-            db["reset_indices"].drop()
+            os.remove("data/reset_timevals.csv")
             raise web.seeother('/')
             
             
@@ -95,24 +101,73 @@ class Main:
 class Receiver:        
 
     def GET(self, received):
-        # example usage: http://127.0.0.1/insert/sensorId=2225280&decimal=2.0&timestamp=1490710679
+        # example usage: http://127.0.0.1/insert/sensorId=55941031&decimal=2.0&timestamp=1490710679
 
         if received:
             
-            sId, decimal, timestamp = getvals(received)
+            sensorId, decimal, timestamp = getvals(received)
             
-            if sensorId == sId:
+            if sensorId in sensors:
                 
-                table = db[sensorId]
+                data = [[to_local_time(timestamp), decimal]]
                 
-                table.insert(dict(data = decimal, time = to_local_time(timestamp)))
+                file_path = dbpath + sensorId + ".csv"
+                temp_path = dbpath + sensorId + ".tmp"
                 
+                try:
+                    
+                    # adding temp/buffer data that accumulated while the file was open by another process
+                    if os.path.isfile(temp_path):
+                        
+                        buffer = pd.read_csv(temp_path).values.tolist()
+                        buffer.append(data)
+                        
+                        df = pd.DataFrame(buffer, index = None, columns = ('time', 'data'))
+                        
+                        with open(file_path, 'a') as f:
+                            df.to_csv(f, index = None, header = False)
+                        
+                    else:
+                        
+                        df = pd.DataFrame(data, index = None, columns = ('time', 'data'))
+                        
+                        if os.path.isfile(file_path):
+                            
+                            db = pd.read_csv(file_path)
+                            
+                            if len(db) < 70000:
+                                with open(file_path, 'a') as f:
+                                    df.to_csv(f, index = None, header = False)
+                                    
+                            else:
+                                db = db[35000:].reset_index(drop=True)
+                                with open(file_path, 'w') as f:
+                                    db.to_csv(f, index = None)
+                                    
+                                with open(file_path, 'a') as f:
+                                    df.to_csv(f, index = None, header = False)
+                        
+                        else:
+                            with open(file_path, 'w') as f:
+                                df.to_csv(f, index = None)
+                
+                # if the file is open by another process
+                except IOError:
+                    
+                    if os.path.isfile(temp_path):
+                        with open(temp_path, 'a') as f:
+                            df.to_csv(f, index = None, header = False)
+                    
+                    else:
+                        with open(temp_path, 'w') as f:
+                            df.to_csv(f, index = None)
+                        
                 output_dict = {"type": sensorId, "data": decimal, "time": timestamp}
                 
                 return "OK / Received: %s" % output_dict
                 
             else:
-                return "<html>Wrong sensor ID value. </br>Sensor ID should be: %s </br>Value entered: %s</html>" % (sensorId, sId)
+                return "<html>Wrong sensor ID value. </br>Sensor ID should be one of the following: %s </br>Value entered: %s</html>" % (" ".join(x for x in sensors), sensorId)
         
         else:
             return "Incorrect format. Please check the format of your GET-request"
@@ -123,12 +178,14 @@ class Last_val:
     def GET(self):
         # example usage: http://127.0.0.1/last
         
-        if db.tables.count(sensorId):  # checking if the database contains data for a given sensor
+        if os.path.isfile(current_sensor_dbpath):
             
-            decimal = str(db[sensorId].find_one(id=db[sensorId].count())['data'])
-            timestamp = to_timestamp(db[sensorId].find_one(id=db[sensorId].count())['time'])
+            db = pd.read_csv(current_sensor_dbpath)  # checking if the database contains data for a given sensor
+        
+            value = db['data'].values[-1]
+            time = db['time'].values[-1]
             
-            output_dict = {"type": sensorId, "data": decimal, "time": timestamp}
+            output_dict = {"type": current_sensor, "data": str(value), "timemestamp": to_timestamp(time), "local_time": time}
         
             return output_dict
         
@@ -144,20 +201,27 @@ class Predict_next:
         vals = []
         time_full = []
             
-        if db.tables.count(sensorId):  
+        if os.path.isfile(current_sensor_dbpath):
+            
+            db = pd.read_csv(current_sensor_dbpath)  # checking if the database contains data for a given sensor
         
-            for el in db[sensorId].all():
-                vals.append(float(el['data']))
-                time_full.append(el['time'])
+            vals = db['data'].values.tolist()
+            time_full = db['time'].values.tolist()
         
+        else:
+            return "No data received yet"
+            
         time_min = mean_minute_transform(vals, time_full)
                 
         x = np.asarray([to_local_time(ts, precision = "minutes") for ts in time_min.keys()])
         y = np.asarray(time_min.values())
         
-        # working on a timeframe of 1000 minutes
-        x = x[len(x)-1000:len(x)]
-        y = y[len(y)-1000:len(y)]
+        if len(x) > 1000:
+            # working on a timeframe of 1000 minutes
+            x = x[len(x)-1000:len(x)]
+            y = y[len(y)-1000:len(y)]
+        else:
+            return "Not enough training data. Currently there is data only for %i minute(s). Please wait until there is data on 1000 minutes." % len(x)
         
         # using ARIMA model
         model_arima = pf.ARIMA(data=np.asarray(y), ar=3, ma=1, target=np.asarray(x))
@@ -179,23 +243,27 @@ class Predict_next_5:
     def GET(self):
         # example usage: http://127.0.0.1/predict_next_5
         
-        vals = []
-        time_full = []
+        if os.path.isfile(current_sensor_dbpath):
             
-        if db.tables.count(sensorId):  
+            db = pd.read_csv(current_sensor_dbpath)  # checking if the database contains data for a given sensor
         
-            for el in db[sensorId].all():
-                vals.append(float(el['data']))
-                time_full.append(el['time'])
+            vals = db['data'].values.tolist()
+            time_full = db['time'].values.tolist()
+        
+        else:
+            return "No data received yet"
         
         time_min = mean_minute_transform(vals, time_full)
                 
         x = np.asarray([to_local_time(ts, precision = "minutes") for ts in time_min.keys()])
         y = np.asarray(time_min.values())
         
-        # working on a timeframe of 1000 minutes
-        x = x[len(x)-1000:len(x)]
-        y = y[len(y)-1000:len(y)]
+        if len(x) > 1000:
+            # working on a timeframe of 1000 minutes
+            x = x[len(x)-1000:len(x)]
+            y = y[len(y)-1000:len(y)]
+        else:
+            return "Not enough training data. Currently there is data only for %i minute(s). Please wait until there is data on 1000 minutes." % len(x)
         
         # using ARIMA model
         model_arima = pf.ARIMA(data=np.asarray(y), ar=3, ma=1, target=np.asarray(x))
@@ -207,7 +275,7 @@ class Predict_next_5:
         
         x_ticks = range(1,6)
         
-        graph = visuals.plot_data(x_ticks, predicted, sensorId)
+        graph = visuals.plot_data(x_ticks, predicted, current_sensor)
         
         return render.visualize(graph)
         

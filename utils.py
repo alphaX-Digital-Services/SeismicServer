@@ -4,7 +4,7 @@ import time
 
 
 def getvals(data):
-    # data: sensorId=2225280&decimal=1.22377&timestamp=1490710679
+    # data: sensorId=55941031&decimal=2.0&timestamp=1490710679
 
     s_end = data.find('&')
     
@@ -19,7 +19,10 @@ def getvals(data):
     
     t_start = data.find('timestamp=')+10
     
-    timestamp = str(int(int(data[t_start:])/1000))            # converting milliseconds' timestamps to seconds' timestamps
+    if len(data[t_start:]) == 13:
+        timestamp = str(int(int(data[t_start:])/1000))            # converting milliseconds' timestamps to seconds' timestamps
+    else:
+        timestamp = str(data[t_start:])
 
     return sensorId, decimal, timestamp
     
