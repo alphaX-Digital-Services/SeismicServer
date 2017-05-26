@@ -271,7 +271,7 @@ class Predict_next_5:
         # training via maximum likelihood estimation
         trained_arima = model_arima.fit("MLE")
         
-        predicted = model_arima.predict(h=5, intervals = True)['Series'].tolist()
+        predicted = model_arima.predict(h=5)['Series'].tolist()
         
         x_ticks = range(1,6)
         
