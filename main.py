@@ -235,10 +235,10 @@ class Predict_next:
         predicted = model_arima.predict(h=1)['Series'].tolist()[0]
         
         if predicted > y[-1]:
-            return "<html>Prediction: the value will increase. <br/><br/>Predicted value for the next minute: %f <br/>Current value at %s: %f <br/><br/>Last observation (raw) at %s: %f</html>" % (predicted, x[-1], y[-1], time_full[-1], vals[-1])
+            return "<html>Prediction: the value will <font color='green'>increase</font>. <br/><br/>Predicted value for the next minute: <b>%f</b> <br/>Current value at %s: <b>%f</b> <br/><br/>Last observation (raw) at %s: <b>%f</b></html>" % (predicted, x[-1], y[-1], time_full[-1], vals[-1])
         
         else:
-            return "<html>Prediction: the value will decrease. <br/><br/>Predicted value for the next minute: %f <br/>Current value at %s: %f <br/><br/>Last observation (raw) at %s: %f</html>" % (predicted, x[-1], y[-1], time_full[-1], vals[-1])
+            return "<html>Prediction: the value will <font color='red'>decrease</font>. <br/><br/>Predicted value for the next minute: <b>%f</b> <br/>Current value at %s: <b>%f</b> <br/><br/>Last observation (raw) at %s: <b>%f</b></html>" % (predicted, x[-1], y[-1], time_full[-1], vals[-1])
         
 
 class Predict_next_5:
@@ -378,7 +378,7 @@ class Test:
             return accuracy, hits, mismatches, accs
             
                 
-        accuracy, hits, mismatches, accs = iteratively_validate(x, y, test_fraction = 0.1)
+        accuracy, hits, mismatches, accs = iteratively_validate(x, y, test_fraction = 0.47)
         
         print
         print"Accs: ", accs
