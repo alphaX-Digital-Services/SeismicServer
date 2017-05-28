@@ -368,7 +368,7 @@ class Test:
                     else:
                         mismatches += 1
                        
-                acc = float(hits) / float(test_len)
+                acc = float(hits) / float(hits+mismatches)
                 accs.append(acc)
                 print "Accuracy: %s, hits: %s, mismatches: %s" % (acc, hits, mismatches)
                 print
