@@ -330,7 +330,7 @@ class Test:
             train_len = int( len(x) * (1 - test_fraction) )
             test_len = int( len(x) * test_fraction )
             
-            print("Fitting the model iteratively %i times" % test_len)
+            print "Fitting the model iteratively %i times" % test_len
             
             hits = 0
             mismatches = 0
@@ -338,7 +338,7 @@ class Test:
             
             for i in range(test_len):
                 
-                print("Iteration %i, testing prediction for minute No. %i of the last %i minutes" % (i, i + train_len + 1, max_len))
+                print "Iteration %i, testing prediction for minute No. %i of the last %i minutes" % (i, i + train_len + 1, max_len)
                 
                 x_train = x[0:train_len + i]
                 y_train = y[0:train_len + i]
@@ -370,21 +370,21 @@ class Test:
                        
                 acc = float(hits) / float(test_len)
                 accs.append(acc)
-                print("Accuracy: ", acc)
+                print "Accuracy: %s, hits: %s, mismatches: %s" % (acc, hits, mismatches)
+                print
             
             accuracy = float(hits) / float(test_len)
             
             return accuracy, hits, mismatches, accs
             
                 
-        accuracy, hits, mismatches, accs = iteratively_validate(x, y, test_fraction = 0.9)
+        accuracy, hits, mismatches, accs = iteratively_validate(x, y, test_fraction = 0.1)
         
-        print()
-        print("Accuracy: %s, hits: %s, mismatches: %s" % (accuracy, hits, mismatches))
-        print()
-        print()
-        print("Accs: ", accs)
-        print()
+        print
+        print"Accs: ", accs
+        print
+        print"Accuracy: %s, hits: %s, mismatches: %s" % (accuracy, hits, mismatches)
+        print
 
         return "Accuracy: %s, hits: %s, mismatches: %s" % (accuracy, hits, mismatches)
         
