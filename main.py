@@ -24,7 +24,8 @@ urls = (
     '/last', 'Last_val',
     '/predict_next', 'Predict_next',
     '/predict_next_5', 'Predict_next_5',
-    '/reset', 'Reset'
+    '/reset', 'Reset',
+    '/test', 'Test'
 )
 
 
@@ -285,9 +286,98 @@ class Predict_next_5:
             
         if data.back:
             raise web.seeother('/')
+            
+
+class Test:
+    
+    def GET(self):
+        # example usage: http://127.0.0.1/predict_next
+        
+        vals = []
+        time_full = []
+            
+        if os.path.isfile(current_sensor_dbpath):
+            
+            db = pd.read_csv(current_sensor_dbpath)  # checking if the database contains data for a given sensor
+        
+            vals = db['data'].values.tolist()
+            time_full = db['time'].values.tolist()
+        
+        else:
+            return "No data received yet"
+            
+        time_min = mean_minute_transform(vals, time_full)
+                
+        x = np.asarray([to_local_time(ts, precision = "minutes") for ts in time_min.keys()])
+        y = np.asarray(time_min.values())
+        
+        max_len = len(x)
+        
+        if len(x) >= max_len:
+            # working on a timeframe of max_len minutes
+            x = x[len(x)-max_len:len(x)]
+            y = y[len(y)-max_len:len(y)]
+        else:
+            return "Not enough training data. Currently there is data only for %i minute(s). Please wait until there is data on %i minutes." % (len(x), max_len)
+        
+        
+        def iteratively_validate(x, y, test_fraction = 0.1):
+            
+            train_len = int( len(x) * (1 - test_fraction) )
+            test_len = int( len(x) * test_fraction )
+            
+            print("Fitting the model iteratively %i times" % test_len)
+            
+            hits = 0
+            mismatches = 0
+            
+            for i in range(test_len):
+                
+                print("Iteration %i, testing prediction for minute No. %i of the last %i minutes" % (i, i + train_len + 1, max_len))
+                
+                x_train = x[0:train_len + i]
+                y_train = y[0:train_len + i]
+                
+                y_true = y[train_len + i]
+                
+                model_arima = pf.ARIMA(data=np.asarray(y_train), ar=3, ma=3, target=np.asarray(x_train))
+                
+                # training via maximum likelihood estimation
+                trained_arima = model_arima.fit("MLE")
+                
+                y_pred = model_arima.predict(h=1)['Series'].tolist()[0]
+                
+                # prediction for an increase
+                if y_pred > y_train[-1]: 
+                    # actual increase
+                    if y_true > y_train[-1]: 
+                        hits += 1
+                    else:
+                        mismatches += 1
+                        
+                # prediction for a decrease`
+                else:
+                    # actual decrease
+                    if y_true < y_train[-1]:
+                        hits += 1
+                    else:
+                        mismatches += 1
+                        
+            accuracy = float(hits) / float(test_len)
+            
+            return accuracy, hits, mismatches
+            
+                
+        accuracy, hits, mismatches = iteratively_validate(x, y, test_fraction = 0.25)
+        
+        print()
+        print("Accuracy: %s, hits: %s, mismatches: %s" % (accuracy, hits, mismatches))
+        print()
+
+        return "Accuracy: %s, hits: %s, mismatches: %s" % (accuracy, hits, mismatches)
         
         
 
 if __name__ == "__main__":
-    app = web.application(urls, globals())
+    app = web.application(urls, globals(), autoreload = True)
     app.run()
