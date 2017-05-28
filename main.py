@@ -44,9 +44,9 @@ class Main:
             time = df['time'].values
             
         
-        if len(data) > 35000:
-            data = data[len(data)-35000:len(data)]
-            time = time[len(time)-35000:len(time)]
+        if len(data) > 15000:
+            data = data[len(data)-15000:len(data)]
+            time = time[len(time)-15000:len(time)]
         
         
         if os.path.isfile("data/reset_timevals.csv"):  
@@ -136,12 +136,12 @@ class Receiver:
                             
                             db = pd.read_csv(file_path)
                             
-                            if len(db) < 70000:
+                            if len(db) < 150000:
                                 with open(file_path, 'a') as f:
                                     df.to_csv(f, index = None, header = False)
                                     
                             else:
-                                db = db[35000:].reset_index(drop=True)
+                                db = db[10000:].reset_index(drop=True)
                                 with open(file_path, 'w') as f:
                                     db.to_csv(f, index = None)
                                     
@@ -334,6 +334,7 @@ class Test:
             
             hits = 0
             mismatches = 0
+            accs = []
             
             for i in range(test_len):
                 
@@ -366,16 +367,23 @@ class Test:
                         hits += 1
                     else:
                         mismatches += 1
-                        
+                       
+                acc = float(hits) / float(test_len)
+                accs.append(acc)
+                print("Accuracy: ", acc)
+            
             accuracy = float(hits) / float(test_len)
             
-            return accuracy, hits, mismatches
+            return accuracy, hits, mismatches, accs
             
                 
-        accuracy, hits, mismatches = iteratively_validate(x, y, test_fraction = 0.25)
+        accuracy, hits, mismatches, accs = iteratively_validate(x, y, test_fraction = 0.9)
         
         print()
         print("Accuracy: %s, hits: %s, mismatches: %s" % (accuracy, hits, mismatches))
+        print()
+        print()
+        print("Accs: ", accs)
         print()
 
         return "Accuracy: %s, hits: %s, mismatches: %s" % (accuracy, hits, mismatches)
