@@ -378,7 +378,7 @@ class Test:
             return accuracy, hits, mismatches, accs
             
                 
-        accuracy, hits, mismatches, accs = iteratively_validate(x, y, test_fraction = 0.1)
+        accuracy, hits, mismatches, accs = iteratively_validate(x, y, test_fraction = 0.47)
         
         print
         print"Accs: ", accs
