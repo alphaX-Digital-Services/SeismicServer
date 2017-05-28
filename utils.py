@@ -91,68 +91,67 @@ def round_timestamp(timestamp, precision = "minutes"):
     
     
 def mean_minute_transform(vals, time_full):
-    
-    """ 
-    
+
+    """
+
     Transforms (local) datetime values of format '2017-04-04 10:32:02' to timestamps,
     converts it to the nearest minutes in timestamp representation,
     and converts sensor data to values averaged over minute-wide intervals.
-    
-    Input: 
+
+    Input:
     vals, array of float values (sensor data)
     time_full, array of datetime values of format '2017-04-04 10:32:02'
-    
+
     Output:
     OrderedDict object with timestamps rounded to minutes as keys and minute-wide averages as values
-    
+
     """
-    
+
+    last_ts = to_timestamp(time_full[-1], output_format = 'int')    # will be the timestamp as from /last: to_timestamp(db[codename].find_one(id=db[codename].count())['time'])
     time_min = OrderedDict()
-    
+
     for idx, t in enumerate(time_full):
-        
+
         ts = to_timestamp(t, output_format = 'int')
-        
+
         # ticks are in minutes
         tick = int(round_timestamp(ts, precision = "minutes"))
-        last_received_tick = to_timestamp(time_full[-1], output_format = 'int')    # will be the timestamp as from /last: to_timestamp(db[sensorId].find_one(id=db[sensorId].count())['time'])
-        
+
         if time_min:
             if tick in time_min:
                 # summing the previous measurement with a new measurement within this particular minute
                 prev_val = time_min[tick]
                 time_min.update({tick: (prev_val + vals[idx])})
-                
+
                 counter += 1
-                
+
                 prev_tick = tick
-                
-                # ToDo: rewrite
-                if ts == last_received_tick:
+
+                if ts == last_ts:
                     sum_last_tick = time_min[tick]
                     time_min.update({tick: (sum_last_tick / counter)})
-            
+
             else:
                 # dividing the sum for the previous minute by the number of measurements, to get the average for that minute
                 sum_prev_tick = time_min[prev_tick]
                 time_min.update({prev_tick: (sum_prev_tick / counter)})
-                    
+
                 # registering new tick (minute)
                 tick_no += 1
-                
+
                 # resetting counter of measurements within 1 minute, as a new minute / tick just started
                 counter = 1
-                
+
                 time_min.update({tick: vals[idx]})
-            
+
         # starting tick
         else:
             time_min.update({tick: vals[idx]})
             tick_no = 0
-            
+
             # counts number of datapoints / measurements within 1 minute
             counter = 1
-            
+
             prev_tick = tick
-            
+
     return time_min
