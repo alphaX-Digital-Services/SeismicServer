@@ -217,15 +217,17 @@ class Predict_next:
         x = np.asarray([to_local_time(ts, precision = "minutes") for ts in time_min.keys()])
         y = np.asarray(time_min.values())
         
-        if len(x) > 1000:
-            # working on a timeframe of 1000 minutes
-            x = x[len(x)-1000:len(x)]
-            y = y[len(y)-1000:len(y)]
+        max_len = len(x)
+        
+        if len(x) >= max_len:
+            # working on a timeframe of max_len minutes
+            x = x[len(x)-max_len:len(x)]
+            y = y[len(y)-max_len:len(y)]
         else:
-            return "Not enough training data. Currently there is data only for %i minute(s). Please wait until there is data on 1000 minutes." % len(x)
+            return "Not enough training data. Currently there is data only for %i minute(s). Please wait until there is data on %i minutes." % (len(x), max_len)
         
         # using ARIMA model
-        model_arima = pf.ARIMA(data=np.asarray(y), ar=3, ma=1, target=np.asarray(x))
+        model_arima = pf.ARIMA(data=np.asarray(y), ar=3, ma=3, target=np.asarray(x))
         
         # training via maximum likelihood estimation
         trained_arima = model_arima.fit("MLE")
@@ -259,15 +261,17 @@ class Predict_next_5:
         x = np.asarray([to_local_time(ts, precision = "minutes") for ts in time_min.keys()])
         y = np.asarray(time_min.values())
         
-        if len(x) > 1000:
-            # working on a timeframe of 1000 minutes
-            x = x[len(x)-1000:len(x)]
-            y = y[len(y)-1000:len(y)]
+        max_len = len(x)
+        
+        if len(x) >= max_len:
+            # working on a timeframe of max_len minutes
+            x = x[len(x)-max_len:len(x)]
+            y = y[len(y)-max_len:len(y)]
         else:
-            return "Not enough training data. Currently there is data only for %i minute(s). Please wait until there is data on 1000 minutes." % len(x)
+            return "Not enough training data. Currently there is data only for %i minute(s). Please wait until there is data on %i minutes." % (len(x), max_len)
         
         # using ARIMA model
-        model_arima = pf.ARIMA(data=np.asarray(y), ar=3, ma=1, target=np.asarray(x))
+        model_arima = pf.ARIMA(data=np.asarray(y), ar=3, ma=3, target=np.asarray(x))
         
         # training via maximum likelihood estimation
         trained_arima = model_arima.fit("MLE")
