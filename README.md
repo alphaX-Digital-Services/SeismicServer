@@ -47,3 +47,7 @@ if using Anaconda:
 alias sudo='sudo env PATH=$PATH'
 sudo python main.py
 ```
+
+## multiple sensors support: 
+In the beginning of main.py you can add the supported sensors by adding the necessary sensor IDs to variable 'sensors' (line 11).<br/>
+Then you can select which sensor to work with by changing the value of 'current_sensor' variable (line 12).
