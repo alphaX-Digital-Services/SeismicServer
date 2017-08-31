@@ -1,7 +1,7 @@
 # SeismicServer
 
 SeismicServer Statistical Prediction App receives a stream of data in the following format: <br/>
-sensorId=55941031&decimal=2.0&timestamp=1490710679 <br/>
+*sensorId=55941031&decimal=2.0&timestamp=1490710679* <br/>
 
 The received data is visualized as a time-series chart and stored for further statistical predictions: one-step-ahead or 5-steps-ahead predictions. <br/>
 
@@ -24,9 +24,9 @@ The likelihood estimate, in addition to the magnitude & relative-change for the 
 
 Autonomous testing occurs in a separate thread, the resulting accuracy snapshots are stored in separate .csv files for each sensor <br/>
 
-The model's parameters are fine-tuned (including seasonal component of SARIMAX model) for two sensors: 55941031 and 2225280 <br/>
+The model's parameters are fine-tuned (including seasonal component of SARIMAX model) for two sensors: *55941031* and *2225280* <br/>
 
-Accuracy snapshots (median accuracy over median accuracy for two 20 minute-wide sliding windows over last 50 minutes) can be found in data/current_accuracy_%sensor_name% <br/>
+Accuracy snapshots (median accuracy over median accuracy for two 20 minute-wide sliding windows over last 50 minutes) can be found in *data/current_accuracy_%sensor_name%* <br/>
 
 ## Depdendencies
 
