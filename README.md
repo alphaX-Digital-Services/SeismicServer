@@ -20,7 +20,7 @@ The received data is visualized as a time-series chart and stored for further st
 
 Each consecutive prediction provides an approximate likelihood estimate (in 0-1 range). <br/>
 
-The likelihood estimate, in addition to the magnitude & relative-change for the prediction, takes into account recent model's performance based on autonomous testing which occurs roughly every 30 minutes (depending on frequency of pushes from the sensor). <br/>
+The likelihood estimate, in addition to the magnitude & relative-change for the next prediction, takes into account recent model's performance based on autonomous testing which occurs roughly every 30 minutes (depending on frequency of pushes from the sensor). <br/>
 
 Autonomous testing occurs in a separate thread, the resulting accuracy snapshots are stored in separate .csv files for each sensor <br/>
 
