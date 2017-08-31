@@ -1,7 +1,13 @@
 import pandas as pd
 from collections import OrderedDict
+import numpy as np
 import time
 
+
+def normalize(x):
+    
+    return (x-np.min(x))/(np.max(x)-np.min(x))
+    
 
 def getvals(data):
     # data: sensorId=55941031&decimal=2.0&timestamp=1490710679
