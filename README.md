@@ -10,7 +10,7 @@ The received data is visualized as a time-series chart and stored for further st
 *Example output request [return last value]:* http://127.0.0.1/last <br/>
 *Example one-step-ahead prediction request:* http://127.0.0.1/predict_next <br/>
 *Example 5-steps-ahead prediction request:* http://127.0.0.1/predict_next_5 <br/>
-*Example accuracy test request:* [trains and tests incrementally over the last 10% of the data, may take a lot of time to complete]: http://127.0.0.1/test
+*Example accuracy test request [trains and tests incrementally over the last 10% of the data, may take a lot of time to complete]:* http://127.0.0.1/test
  <br/>
  <br/>
 
