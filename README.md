@@ -5,14 +5,6 @@ sensorId=55941031&decimal=2.0&timestamp=1490710679 <br/>
 
 The received data is visualized as a time-series chart and stored for further statistical predictions: one-step-ahead or 5-steps-ahead predictions. <br/>
 
-Each consecutive prediction provides an approximate likelihood estimated, which takes into account recent model's performance based on autonomous testing which occurs roughly every 30 minutes (depending on frequency of pushes from the sensor). <br/>
-
-Autonomous testing occurs in a separate thread, the resulting accuracy snapshots are stored in separate .csv files for each sensor <br/>
-
-The model's parameters are fine-tuned (including seasonal component of SARIMAX model) for two sensors: 55941031 and 2225280 <br/>
-
-Accuracy snapshots (median accuracy over median accuracy for two 20 minute-wide sliding windows over last 50 minutes) can be found in data/current_accuracy_%sensor_name% <br/>
-
 *Main interface with a chart and prediction functionality:* http://127.0.0.1/ <br/>
 *Example input request [insert new value]:* http://127.0.0.1/insert/sensorId=55941031&decimal=2.0&timestamp=1490710679 <br/>
 *Example output request [return last value]:* http://127.0.0.1/last <br/>
@@ -23,6 +15,18 @@ Accuracy snapshots (median accuracy over median accuracy for two 20 minute-wide 
  <br/>
 
 ![SeismicServer Statistical Prediction App, beta version](/data/seismicserver_beta.png?raw=true "SeismicServer beta")
+
+## Additional features
+
+Each consecutive prediction provides an approximate likelihood estimate (in 0-1 range). <br/>
+
+The likelihood estimate, in addition to the magnitude & relative-change for the prediction, takes into account recent model's performance based on autonomous testing which occurs roughly every 30 minutes (depending on frequency of pushes from the sensor). <br/>
+
+Autonomous testing occurs in a separate thread, the resulting accuracy snapshots are stored in separate .csv files for each sensor <br/>
+
+The model's parameters are fine-tuned (including seasonal component of SARIMAX model) for two sensors: 55941031 and 2225280 <br/>
+
+Accuracy snapshots (median accuracy over median accuracy for two 20 minute-wide sliding windows over last 50 minutes) can be found in data/current_accuracy_%sensor_name% <br/>
 
 ## Depdendencies
 
